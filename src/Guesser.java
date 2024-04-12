@@ -1,3 +1,7 @@
+/*
+ * Author: Peter Stelzer
+ */
+
 import java.io.IOException;
 import java.util.LinkedList;
 
@@ -15,6 +19,13 @@ public class Guesser {
       System.out.println (System.nanoTime () - startTime);
    }
 
+   /*
+    * 0) Get set with words of right length
+    * 1) Analyze set for letter that has not been guessed yet and is in the most words
+    * 2) Guess letter -> get word with guessed letter in positions
+    * 3) Shrink set exclude words which do not have the guessed letter in positions
+    * 4) Repeat from 1
+    */
    public static boolean run (final String word) throws IOException {
       final StringBuilder sequence = new StringBuilder (word.length ());
       sequence.append (word.length ());

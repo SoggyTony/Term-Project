@@ -1,3 +1,7 @@
+/*
+ * Author: Peter Stelzer
+ */
+
 import java.io.IOException;
 
 public class AssortByCharacterPresence {

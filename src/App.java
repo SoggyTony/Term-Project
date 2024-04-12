@@ -1,4 +1,6 @@
 /*
+ * Author: Peter Stelzer
+ * 
  * 1) Get word length
  * 2) Get letter which appears at least once in the most words of that length (precomputed)
  * 3) Guess letter, get number of that letter in the word

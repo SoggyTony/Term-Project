@@ -1,3 +1,7 @@
+/*
+ * Author: Peter Stelzer
+ */
+
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 

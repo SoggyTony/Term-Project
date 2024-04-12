@@ -1,3 +1,7 @@
+/*
+ * Author: Peter Stelzer
+ */
+
 import java.util.Iterator;
 
 public class HomogenousWordSet implements Iterable<String> {
