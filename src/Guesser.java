@@ -1,5 +1,6 @@
 /*
  * Author: Peter Stelzer
+ * pnis
  */
 
 import java.io.IOException;
