@@ -5,7 +5,7 @@ import java.util.LinkedList;
 
 public class MatchWordstoPattern {
    public static void main (final String[] args) throws IOException {
-      System.out.println (run ("11e2r1t0n0i0l2s0o2g1b0f1x1y1"));
+      System.out.println (run ("6e1n0"));
    }
 
    public static HomogenousWordSet runParticular (final String sequence) throws IOException {
@@ -139,11 +139,26 @@ public class MatchWordstoPattern {
       final StringBuilder setBuilder = new StringBuilder ();
 
       Processor: for (final String word : set) {
-         for (final int i : indices) {
-            if (word.charAt (i) != c) {
+         final var posIterator = indices.iterator ();
+         int nextPos = Integer.MAX_VALUE;
+         if (posIterator.hasNext ()) {
+            nextPos = posIterator.next ();
+         }
+
+         for (int i = 0; i < word.length (); i++) {
+            if (word.charAt (i) == c && nextPos == i) {
+               nextPos = posIterator.hasNext() ? posIterator.next() : Integer.MAX_VALUE;
+            }
+            else if (word.charAt (i) == c || nextPos <= i) {
+               //System.out.printf("%s does not match because it has a %s at %d%n", word, word.charAt(i), i);
                continue Processor;
             }
          }
+         /*for (final int i : indices) {
+            if (word.charAt (i) != c) {
+               continue Processor;
+            }
+         }*/
 
          setBuilder.append (word);
       }

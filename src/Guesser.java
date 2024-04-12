@@ -3,11 +3,9 @@ import java.util.LinkedList;
 
 public class Guesser {
    final String word;
-   private final CharacterMap chars;
 
    private Guesser (final String word) {
       this.word = word;
-      chars = new CharacterMap ().addFrom (word);
    }
 
    public static void main (final String[] args) throws IOException {
@@ -26,10 +24,18 @@ public class Guesser {
             MatchWordstoPattern.run (Integer.toString (word.length ()));
 
       while (true) {
+         //System.out.println (possibleWords);
          final char guess =
                CharacterDistributionAnalyzer.getNext (possibleWords, sequence.toString ());
 
+         //System.out.println (guess);
+
+         if (possibleWords.occupancy == 0) {
+            return false;
+         }
+
          if (guess < 'a') {
+            System.out.println (sequence.toString ());
             System.out.println (possibleWords);
             return true;
          }
