@@ -10,6 +10,7 @@ public class Guesser {
 
    public static void main (final String[] args) throws IOException {
       final long startTime = System.nanoTime ();
+      PartitionByLength.run("words.txt");
       System.out.println (run (args[0].toLowerCase ()));
       System.out.println (System.nanoTime () - startTime);
    }
