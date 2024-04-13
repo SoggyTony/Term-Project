@@ -4,7 +4,12 @@
   Group name: The Stardust Crusaders
   Course: CSE 2010
   Section: S23
-  Description of the overall algorithm: 
+  Description of the overall algorithm:
+  First creates files for each word length, which contains all the words of that length. 
+  
+  When guess() is called, check if the currentWord is a new word. If it is a new word, load all words of currentWord length into the possible word set. Next, it finds and guesses the letter that appears in the most words in the possible word set that has not been guessed before. Marks that the letter was guessed.
+  
+  When feedback() is ran, find where the guessed letter appears in the word. Update the possibleWords set to only include words that match the pattern of the hidden word.
 */
 
 import java.io.IOException;
@@ -67,13 +72,14 @@ public class HangmanPlayer {
   // last letter needed
   // b. false partial word without the guessed letter
   public void feedback(boolean isCorrectGuess, String currentWord) {
-    // System.out.println("Current Word: " + currentWord);
+    // Determine where the guessed letter appears in the hidden word
     final LinkedList<Integer> presentIndices = new LinkedList<>();
     for (int i = 0; i < currentWord.length(); i++) {
       if (currentWord.charAt(i) == guess) {
         presentIndices.add(i);
       }
     }
+    // Update the possibleWords set to only include words that match the pattern of the hidden word
     possibleWords = runPositionsForLetterOnSet(presentIndices, guess, possibleWords);
   }
   
