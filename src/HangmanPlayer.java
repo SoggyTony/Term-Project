@@ -135,7 +135,7 @@ public class HangmanPlayer {
    }
    
    // import parition and puts the file into word set
-   public static HomogenousWordSet importPartition (final int worldLength) throws IOException {
+   public static HomogenousWordSet importPartition (final int wordLength) throws IOException {
       
       final CharacterMap characterCounts = new CharacterMap ();
       final StringBuilder setBuilder = new StringBuilder ();
