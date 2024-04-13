@@ -3,7 +3,7 @@
   Email addresses of group members: pstelzer2023@my.fit.edu ; amenendezmen2022@my.fit.edu ; gbubb2022@my.fit.edu; jcajuste2022@my.fit.edu
   Group name: The Stardust Crusaders
   Course: CSE 2010
-  Section: S23 / E3?
+  Section: S23
   Description of the overall algorithm: 
 */
 
