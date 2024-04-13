@@ -1,6 +1,6 @@
 /*
   Authors : Peter Stelzer; Anthony Menendez Mendez; Gianni Bubb; Joshua Cajuste
-  Email addresses of group members: pstelzer2023@my.fit.edu ; amenendezmen2022@my.fit.edu ; gbubb2022@my.fit.edu; jcajuste2022@my.fit.edu
+  Email addresses of group members: pstelzer2023@my.fit.edu; amenendezmen2022@my.fit.edu; gbubb2022@my.fit.edu; jcajuste2022@my.fit.edu
   Group name: The Stardust Crusaders
   Course: CSE 2010
   Section: S23
