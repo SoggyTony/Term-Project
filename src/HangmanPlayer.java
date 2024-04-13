@@ -1,16 +1,20 @@
 /*
-  Authors : Peter Stelzer; Anthony Menendez Mendez; Gianni Bubb; Joshua Cajuste
-  Email addresses of group members: pstelzer2023@my.fit.edu; amenendezmen2022@my.fit.edu; gbubb2022@my.fit.edu; jcajuste2022@my.fit.edu
-  Group name: The Stardust Crusaders
-  Course: CSE 2010
-  Section: S23
-  Description of the overall algorithm:
-  First creates files for each word length, which contains all the words of that length. 
-  
-  When guess() is called, check if the currentWord is a new word. If it is a new word, load all words of currentWord length into the possible word set. Next, it finds and guesses the letter that appears in the most words in the possible word set that has not been guessed before. Marks that the letter was guessed.
-  
-  When feedback() is ran, find where the guessed letter appears in the word. Update the possibleWords set to only include words that match the pattern of the hidden word.
-*/
+ * Authors : Peter Stelzer; Anthony Menendez Mendez; Gianni Bubb; Joshua Cajuste
+ * Email addresses of group members: pstelzer2023@my.fit.edu; amenendezmen2022@my.fit.edu;
+ * gbubb2022@my.fit.edu; jcajuste2022@my.fit.edu
+ * Group name: The Stardust Crusaders
+ * Course: CSE 2010
+ * Section: S23
+ * Description of the overall algorithm:
+ * Init: Create files for each word length, which contain all the words of that length.
+ * 
+ * guess(): If hiddenWord is a newWord, load all words of hiddenWord length into the possible
+ * word set. Next, find and guess the letter that appears in the most words in the
+ * possibleWords set that has not been guessed before. Mark that the letter was guessed.
+ * 
+ * feedback(): Find where the guessed letter appears in the hiddenWord. Update the
+ * possibleWords set to only include words that match the pattern of the hiddenWord.
+ */
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -20,77 +24,78 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 
 public class HangmanPlayer {
-  StringBuilder guessedLetters;
-  HomogenousWordSet possibleWords;
-  char guess;
+   StringBuilder guessedLetters;
+   HomogenousWordSet possibleWords;
+   char guess;
 
-  // initialize HangmanPlayer with a file of English words
-  public HangmanPlayer(String wordFile) {
-    try {
-      partitionByLength(wordFile);
-    } catch (IOException e) {
-      System.out.println("FUCK");
-      System.exit(-1);
-    }
-  }
-
-  // based on the current (partial or intitially blank) word
-  // guess a letter
-  // currentWord: current word, currenWord.length has the length of the hidden
-  // word
-  // isNewWord: indicates a new hidden word
-  // returns the guessed letter
-  // assume all letters are in lower case
-  public char guess(String currentWord, boolean isNewWord) {
-
-    if (isNewWord) {
-      // System.out.println();
-      guessedLetters = new StringBuilder(currentWord.length());
-      guessedLetters.append(currentWord.length());
+   // initialize HangmanPlayer with a file of English words
+   public HangmanPlayer (String wordFile) {
       try {
-        possibleWords = importPartition(currentWord.length());
+         partitionByLength (wordFile);
       } catch (IOException e) {
-        System.out.println("FUCK");
-        System.exit(-1);
+         System.out.println ("FUCK");
+         System.exit (-1);
       }
-    }
+   }
 
-    guess = getNextGuess(possibleWords, guessedLetters.toString());
+   // based on the current (partial or intitially blank) word
+   // guess a letter
+   // currentWord: current word, currenWord.length has the length of the hidden
+   // word
+   // isNewWord: indicates a new hidden word
+   // returns the guessed letter
+   // assume all letters are in lower case
+   public char guess (String currentWord, boolean isNewWord) {
 
-    guessedLetters.append(guess);
-    return guess;
-  }
-
-  // feedback on the guessed letter
-  // isCorrectGuess: true if the guessed letter is one of the letters in the
-  // hidden word
-  // currentWord: partially filled or blank word
-  //
-  // Case isCorrectGuess currentWord
-  // a. true partial word with the guessed letter
-  // or the whole word if the guessed letter was the
-  // last letter needed
-  // b. false partial word without the guessed letter
-  public void feedback(boolean isCorrectGuess, String currentWord) {
-    // Determine where the guessed letter appears in the hidden word
-    final LinkedList<Integer> presentIndices = new LinkedList<>();
-    for (int i = 0; i < currentWord.length(); i++) {
-      if (currentWord.charAt(i) == guess) {
-        presentIndices.add(i);
+      if (isNewWord) {
+         // System.out.println();
+         guessedLetters = new StringBuilder (currentWord.length ());
+         guessedLetters.append (currentWord.length ());
+         try {
+            possibleWords = importPartition (currentWord.length ());
+         } catch (IOException e) {
+            System.out.println ("FUCK");
+            System.exit (-1);
+         }
       }
-    }
-    // Update the possibleWords set to only include words that match the pattern of the hidden word
-    possibleWords = runPositionsForLetterOnSet(presentIndices, guess, possibleWords);
-  }
-  
-  // seperates the words by length into seperate files
+
+      guess = getNextGuess (possibleWords, guessedLetters.toString ());
+
+      guessedLetters.append (guess);
+      return guess;
+   }
+
+   // feedback on the guessed letter
+   // isCorrectGuess: true if the guessed letter is one of the letters in the
+   // hidden word
+   // currentWord: partially filled or blank word
+   //
+   // Case isCorrectGuess currentWord
+   // a. true partial word with the guessed letter
+   // or the whole word if the guessed letter was the
+   // last letter needed
+   // b. false partial word without the guessed letter
+   public void feedback (boolean isCorrectGuess, String currentWord) {
+      // Determine where the guessed letter appears in the hidden word
+      final LinkedList<Integer> presentIndices = new LinkedList<> ();
+      for (int i = 0; i < currentWord.length (); i++) {
+         if (currentWord.charAt (i) == guess) {
+            presentIndices.add (i);
+         }
+      }
+      // Update the possibleWords set to only include words that match the pattern of the
+      // hidden word
+      possibleWords = runPositionsForLetterOnSet (presentIndices, guess, possibleWords);
+   }
+
+   // seperates the words by length into seperate files
    public static void partitionByLength (final String set) throws IOException {
-     final BufferedReader setIn = new BufferedReader (new FileReader (set));
-     final ArrayList<FileWriter> fws = new ArrayList<> ();
+      final BufferedReader setIn = new BufferedReader (new FileReader (set));
+      final ArrayList<FileWriter> fws = new ArrayList<> ();
 
       String word;
       while ((word = setIn.readLine ()) != null) {
-         
+
          // if a file doesn't exist create a new one
          while (fws.size () < word.length ()) {
             fws.add (null);
@@ -109,7 +114,7 @@ public class HangmanPlayer {
          }
       }
    }
-   
+
    public static HomogenousWordSet runPositionsForLetterOnSet (
          final LinkedList<Integer> indices, final char c, final HomogenousWordSet set) {
       final StringBuilder setBuilder = new StringBuilder ();
@@ -122,13 +127,16 @@ public class HangmanPlayer {
          }
 
          for (int i = 0; i < word.length (); i++) {
-            // if the guessed character is in the correct position then get the next correct position
+            // if the guessed character is in the correct position then get the next correct
+            // position
             if (word.charAt (i) == c && nextPos == i) {
-               nextPos = posIterator.hasNext() ? posIterator.next() : Integer.MAX_VALUE;
+               nextPos = posIterator.hasNext () ? posIterator.next () : Integer.MAX_VALUE;
             }
-            // if the guessed character is not at a correct position then discard the current word
+            // if the guessed character is not at a correct position then discard the current
+            // word
             else if (word.charAt (i) == c || nextPos <= i) {
-               //System.out.printf("%s does not match because it has a %s at %d%n", word, word.charAt(i), i);
+               // System.out.printf("%s does not match because it has a %s at %d%n", word,
+               // word.charAt(i), i);
                continue Processor;
             }
          }
@@ -139,33 +147,33 @@ public class HangmanPlayer {
 
       return new HomogenousWordSet (setBuilder, set.wordLength);
    }
-   
+
    // import parition and puts the file into word set
    public static HomogenousWordSet importPartition (final int wordLength) throws IOException {
-      
+
       final CharacterMap characterCounts = new CharacterMap ();
       final StringBuilder setBuilder = new StringBuilder ();
-      
+
       String word;
       final BufferedReader partitionIn =
             new BufferedReader (new FileReader (String.format ("sets/%d.txt", wordLength)));
       Processor: while ((word = partitionIn.readLine ()) != null) {
          word = word.toLowerCase ().trim ();
-         
+
          characterCounts.clear ();
-         
+
          for (int k = 0; k < wordLength; k++) {
             final char c = word.charAt (k);
             characterCounts.merge (c, 1, (count, j) -> count + j);
          }
-         
-         
+
+
          setBuilder.append (word);
       }
-      
+
       return new HomogenousWordSet (setBuilder, wordLength);
    }
-   
+
    public static char getNextGuess (final HomogenousWordSet set, final String sequence) {
       final CharacterMap wordsWithCharacter = new CharacterMap ();
 
@@ -192,7 +200,7 @@ public class HangmanPlayer {
       int mostCommon = 0;
       int frequency = 0;
       NextCharSelector: for (int c = 'a'; c < 'a' + 26; c++) {
-         final int wordCount = wordsWithCharacter.get((char)c);
+         final int wordCount = wordsWithCharacter.get ((char) c);
          if (wordCount > frequency) {
             for (int i = 0; i < sequence.length (); i++) {
                if (sequence.charAt (i) == c) {
@@ -203,8 +211,8 @@ public class HangmanPlayer {
             mostCommon = c;
          }
       }
-  
-      return (char)mostCommon;
+
+      return (char) mostCommon;
    }
-   
+
 }
