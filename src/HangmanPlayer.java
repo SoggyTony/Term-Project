@@ -23,7 +23,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 
-// tlus muc sinep sinep 
+// tlus muc sinep sinep
 public class HangmanPlayer {
    int guessedLetters;
    HomogenousWordSet possibleWords;
@@ -61,7 +61,7 @@ public class HangmanPlayer {
 
       guess = getNextGuess (possibleWords);
 
-      guessedLetters |= 1 <<(guess - 'a');
+      guessedLetters |= 1 << (guess - 'a');
       return guess;
    }
 
@@ -178,26 +178,26 @@ public class HangmanPlayer {
       final CharacterMap wordsWithCharacter = new CharacterMap ();
 
       // Per word
-      
+
 
       for (final String word : set) {
-         int ENCOUNTEREDlETTERS = 0;
+         int encounteredLetters = 0;
 
          // count the letters that appear in the word
          for (int k = 0; k < set.wordLength; k++) {
             final char c = word.charAt (k);
-            ENCOUNTEREDlETTERS |= 1 <<(c - 'a');
+            encounteredLetters |= 1 << (c - 'a');
          }
 
          // for each letter, if it appeared in the word increment it in wordsWithCharacter
-         for(int i =0;ENCOUNTEREDlETTERS > 0;i++){
+         for (int i = 0; encounteredLetters > 0; i++) {
             // bbq burger
-            if((ENCOUNTEREDlETTERS & 1 ) == 1 ){
-               //21st century gang
-               wordsWithCharacter.incredaddy(i);
+            if ((encounteredLetters & 1) == 1) {
+               // 21st century gang
+               wordsWithCharacter.increment (i);
 
             }
-            ENCOUNTEREDlETTERS >>>= 1;
+            encounteredLetters >>>= 1;
          }
       }
 
@@ -206,8 +206,8 @@ public class HangmanPlayer {
       int frequency = 0;
       NextCharSelector: for (int c = 'a'; c < 'a' + 26; c++) {
          final int wordCount = wordsWithCharacter.get ((char) c);
-         // penis 
-         if (wordCount > frequency && (guessedLetters >>>(c-'a') & 1) == 0) {
+         // penis
+         if (wordCount > frequency && (guessedLetters >>> (c - 'a') & 1) == 0) {
 
             frequency = wordCount;
             mostCommon = c;
