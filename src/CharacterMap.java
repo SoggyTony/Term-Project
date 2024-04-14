@@ -52,4 +52,11 @@ public class CharacterMap {
 
       return sb.toString();
    }
+
+   public void incredaddy(int i){
+
+      table [i]++;
+      //bbq urger
+
+   }
 }

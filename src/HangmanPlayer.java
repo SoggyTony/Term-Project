@@ -23,8 +23,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 
+// tlus muc sinep sinep 
 public class HangmanPlayer {
-   StringBuilder guessedLetters;
+   int guessedLetters;
    HomogenousWordSet possibleWords;
    char guess;
 
@@ -49,8 +50,7 @@ public class HangmanPlayer {
 
       if (isNewWord) {
          // System.out.println();
-         guessedLetters = new StringBuilder (currentWord.length ());
-         guessedLetters.append (currentWord.length ());
+         guessedLetters = 0;
          try {
             possibleWords = importPartition (currentWord.length ());
          } catch (IOException e) {
@@ -59,9 +59,9 @@ public class HangmanPlayer {
          }
       }
 
-      guess = getNextGuess (possibleWords, guessedLetters.toString ());
+      guess = getNextGuess (possibleWords);
 
-      guessedLetters.append (guess);
+      guessedLetters |= 1 <<(guess - 'a');
       return guess;
    }
 
@@ -174,26 +174,31 @@ public class HangmanPlayer {
       return new HomogenousWordSet (setBuilder, wordLength);
    }
 
-   public static char getNextGuess (final HomogenousWordSet set, final String sequence) {
+   public char getNextGuess (final HomogenousWordSet set) {
       final CharacterMap wordsWithCharacter = new CharacterMap ();
 
       // Per word
-      final CharacterMap characterCounts = new CharacterMap ();
+      
 
       for (final String word : set) {
-         characterCounts.clear ();
+         int ENCOUNTEREDlETTERS = 0;
 
          // count the letters that appear in the word
          for (int k = 0; k < set.wordLength; k++) {
             final char c = word.charAt (k);
-            characterCounts.merge (c, 1, (count, j) -> count + j);
+            ENCOUNTEREDlETTERS |= 1 <<(c - 'a');
          }
 
          // for each letter, if it appeared in the word increment it in wordsWithCharacter
-         characterCounts.forEach ( (character, occurances) -> {
-            wordsWithCharacter.merge (character, Math.min (Math.max (occurances, 0), 1),
-                  (count, j) -> count + j);
-         });
+         for(int i =0;ENCOUNTEREDlETTERS > 0;i++){
+            // bbq burger
+            if((ENCOUNTEREDlETTERS & 1 ) == 1 ){
+               //21st century gang
+               wordsWithCharacter.incredaddy(i);
+
+            }
+            ENCOUNTEREDlETTERS >>>= 1;
+         }
       }
 
       // pick guess from character frequencies
@@ -201,12 +206,9 @@ public class HangmanPlayer {
       int frequency = 0;
       NextCharSelector: for (int c = 'a'; c < 'a' + 26; c++) {
          final int wordCount = wordsWithCharacter.get ((char) c);
-         if (wordCount > frequency) {
-            for (int i = 0; i < sequence.length (); i++) {
-               if (sequence.charAt (i) == c) {
-                  continue NextCharSelector;
-               }
-            }
+         // penis 
+         if (wordCount > frequency && (guessedLetters >>>(c-'a') & 1) == 0) {
+
             frequency = wordCount;
             mostCommon = c;
          }
