@@ -12,6 +12,10 @@ public class CharacterMap {
       return table[character - 'a'];
    }
 
+   public int get (final int index) {
+      return table[index];
+   }
+
    public void put (final char character, final int value) {
       table[character - 'a'] = value;
    }

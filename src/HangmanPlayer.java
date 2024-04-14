@@ -21,24 +21,19 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 
-import javax.management.RuntimeErrorException;
-
 // tlus muc sinep sinep
 public class HangmanPlayer {
-   ArrayList<PartitionedWordSet> JohnnySins;
+   final ArrayList<PartitionedWordSet> partitions;
    int guessedLetters;
    PartitionedWordSet possibleWords;
    char guess;
-   CharacterMap wordsWithCharacter = new CharacterMap ();
+   final CharacterMap wordsWithCharacter;
+   boolean skip;
 
    // initialize HangmanPlayer with a file of English words
    public HangmanPlayer (String wordFile) {
-      try {
-         partitionByLength (wordFile);
-      } catch (IOException e) {
-         System.out.println ("FUCK");
-         System.exit (-1);
-      }
+      partitions = loadWordFileIntoPartitions (wordFile);
+      wordsWithCharacter = new CharacterMap ();
    }
 
    // based on the current (partial or intitially blank) word
@@ -51,24 +46,19 @@ public class HangmanPlayer {
    public char guess (String currentWord, boolean isNewWord) {
 
       if (isNewWord) {
-         // if(possibleWords != null) {
-         //    throw new RuntimeException();
-         // }
-         // System.out.println();
+         // We can only handle <=32 length words because of the way we encode guessed letter
+         // positions
+         skip = currentWord.length () > 32;
+
          guessedLetters = 0;
-         // try {
-         //    possibleWords = importPartition (currentWord.length ());
-         // } catch (IOException e) {
-         possibleWords = JohnnySins.get(currentWord.length()-1);
-         possibleWords.restore();
-         //    System.out.println ("FUCK");
-         //    System.exit (-1);
-         // }
+         possibleWords = partitions.get (currentWord.length () - 1);
+         possibleWords.restore ();
       }
 
       guess = getNextGuess ();
 
       guessedLetters |= 1 << (guess - 'a');
+
       return guess;
    }
 
@@ -83,105 +73,108 @@ public class HangmanPlayer {
    // last letter needed
    // b. false partial word without the guessed letter
    public void feedback (boolean isCorrectGuess, String currentWord) {
+      if (skip) {
+         return;
+      }
+
       // Determine where the guessed letter appears in the hidden word
-      // System.out.printf("%s%n", currentWord);
-      int positiondadddy = 0;
+      int positions = 0;
+      int letterVal = 1; // the binary number with 1 in the spot corresponding to the current
+                         // letter
       for (int i = 0; i < currentWord.length (); i++) {
          if (currentWord.charAt (i) == guess) {
-            positiondadddy |= 1 << i;
+            positions |= letterVal;
          }
+         letterVal <<= 1;
       }
+      
       // Update the possibleWords set to only include words that match the pattern of the
       // hidden word
-      // System.out.println(Integer.toBinaryString(positiondadddy));
-      runPositionsForLetterOnSet (positiondadddy);
+      discardNonMatchingWords (positions);
    }
 
    // seperates the words by length into seperate files
-   public void partitionByLength (final String set) throws IOException {
-      final BufferedReader setIn = new BufferedReader (new FileReader (set));
-      final ArrayList<PartitionedWordSet> pornitoned = new ArrayList<> ();
+   public ArrayList<PartitionedWordSet> loadWordFileIntoPartitions (final String wordFile) {
+      final ArrayList<PartitionedWordSet> partitions = new ArrayList<> ();
 
-      String word;
-      while ((word = setIn.readLine ()) != null) {
+      try (BufferedReader setIn = new BufferedReader (new FileReader (wordFile))) {
 
-         // if a file doesn't exist create a new one
-         while (pornitoned.size () < word.length ()) {
-            pornitoned.add (null);
+         String word;
+         while ((word = setIn.readLine ()) != null) {
+
+            // if a partition doesn't exist create a new one
+            while (partitions.size () < word.length ()) {
+               partitions.add (new PartitionedWordSet ());
+            }
+
+            // add word to the partition containing the words of the same length
+            partitions.get (word.length () - 1).append (word.toLowerCase ());
          }
-         if (pornitoned.get (word.length () - 1) == null) {
-            pornitoned.set (word.length () - 1,
-                  new PartitionedWordSet ());
-         }
-         // choose file to write to from length of current word
-         // bqbqbqbqbq
-         pornitoned.get (word.length () - 1).append(word.toLowerCase().trim());
+
+      } catch (IOException e) {
+         throw new RuntimeException ("Failed to open wordFile");
       }
 
-      JohnnySins = pornitoned;
-
+      return partitions;
    }
 
-   public void runPositionsForLetterOnSet (int pointy) {
-
-      
+   public void discardNonMatchingWords (final int positionsWithGuess) {
       Processor: for (final var node : possibleWords) {
-         int megapointy  = pointy;
-         for (int i = 0; i < node.word.length(); i++) {
-            if ((node.word.charAt (i) == guess && (megapointy & 1) == 0) || (node.word.charAt (i) != guess && (megapointy & 1) != 0)) {
+         final String word = node.word;
+         int positions = positionsWithGuess; // copy positions with guessed letter to mutate
+         for (int i = 0; i < word.length (); i++) {
+            final char currentLetter = word.charAt (i);
+            if ((currentLetter == guess && (positions & 1) == 0)
+                  || (currentLetter != guess && (positions & 1) == 1)) {
                // System.out.printf("%s does not match because it has a %s at %d%n", node.word,
                // node.word.charAt(i), i);
-               possibleWords.discard(node);
+               possibleWords.discard (node);
                continue Processor;
             }
-            megapointy >>>= 1;
+            positions >>>= 1;
          }
-
-         // if got to this point the word matches the pattern -> add it to the set
-         
       }
-
    }
 
    public char getNextGuess () {
-      wordsWithCharacter.clear();
+      wordsWithCharacter.clear ();  // reset tally since we reuse it
 
       // Per word
       for (final var node : possibleWords) {
          int encounteredLetters = 0;
 
-         // count the letters that appear in the word
-         for (int k = 0; k < node.word.length(); k++) {
-            final char c = node.word.charAt(k);
-            encounteredLetters |= 1 << (c - 'a');
+         // mark the letters that appear in the word
+         for (int i = 0; i < node.word.length (); i++) {
+            final char currentLetter = node.word.charAt (i);
+            encounteredLetters |= 1 << (currentLetter - 'a');
          }
 
          // for each letter, if it appeared in the word increment it in wordsWithCharacter
+         // tally
          for (int i = 0; encounteredLetters > 0; i++) {
             // bbq burger
             if ((encounteredLetters & 1) == 1) {
                // 21st century gang
                wordsWithCharacter.increment (i);
-
             }
             encounteredLetters >>>= 1; // shift to next letter
          }
       }
 
       // pick guess from character frequencies
-      int mostCommon = 0;
-      int frequency = 0;
-      for (int c = 'a'; c < 'a' + 26; c++) {
-         final int wordCount = wordsWithCharacter.get ((char) c);
-         // penis
-         if (wordCount > frequency && (guessedLetters >>> (c - 'a') & 1) == 0) {
-
+      int mostCommon = -'a';  // we want null character if no letter can be picked
+      int frequency = -1;
+      // Iterate through every letter in the tally and pick the one that hasn't been guessed
+      // and appears in the most words
+      for (int currentLetter = 0; currentLetter < 26; currentLetter++) {
+         final int wordCount = wordsWithCharacter.get (currentLetter);
+         if (wordCount > frequency && ((guessedLetters >>> currentLetter) & 1) == 0) {
             frequency = wordCount;
-            mostCommon = c;
+            mostCommon = currentLetter;
          }
       }
 
-      return (char) mostCommon;
+      return (char) (mostCommon + 'a');
    }
 
 }
