@@ -157,7 +157,8 @@ public class HangmanPlayer {
       String word;
       final BufferedReader partitionIn =
             new BufferedReader (new FileReader (String.format ("sets/%d.txt", wordLength)));
-      Processor: while ((word = partitionIn.readLine ()) != null) {
+      
+      while ((word = partitionIn.readLine ()) != null) {
          word = word.toLowerCase ().trim ();
 
          characterCounts.clear ();
@@ -178,8 +179,6 @@ public class HangmanPlayer {
       final CharacterMap wordsWithCharacter = new CharacterMap ();
 
       // Per word
-
-
       for (final String word : set) {
          int encounteredLetters = 0;
 
@@ -197,14 +196,14 @@ public class HangmanPlayer {
                wordsWithCharacter.increment (i);
 
             }
-            encounteredLetters >>>= 1;
+            encounteredLetters >>>= 1; // shift to next letter
          }
       }
 
       // pick guess from character frequencies
       int mostCommon = 0;
       int frequency = 0;
-      NextCharSelector: for (int c = 'a'; c < 'a' + 26; c++) {
+      for (int c = 'a'; c < 'a' + 26; c++) {
          final int wordCount = wordsWithCharacter.get ((char) c);
          // penis
          if (wordCount > frequency && (guessedLetters >>> (c - 'a') & 1) == 0) {
