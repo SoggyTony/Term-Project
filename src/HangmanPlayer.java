@@ -22,9 +22,9 @@ import java.io.FileReader;
 import java.util.ArrayList;
 
 public class HangmanPlayer {
-   final ArrayList<PartitionedWordSet> partitions;
+   final ArrayList<WordSetPartitions> partitions;
    int guessedLetters;
-   PartitionedWordSet possibleWords;
+   WordSetPartitions.NondestructiveWordSet possibleWords;
    char guess;
    final CharacterMap wordsWithCharacter;
    boolean skip;
@@ -50,10 +50,8 @@ public class HangmanPlayer {
          skip = currentWord.length () > 32;
 
          guessedLetters = 0;
-         possibleWords = partitions.get (currentWord.length () - 1);
-         possibleWords.restore ();
-
-         guess = possibleWords.bestFirstGuess;
+         possibleWords = null;
+         guess = partitions.get (currentWord.length () - 1).bestFirstGuess;
       }
 
       guessedLetters |= 1 << (guess - 'a');
@@ -76,15 +74,32 @@ public class HangmanPlayer {
          return;
       }
 
+      final int wordLength = currentWord.length ();
+
       // Determine where the guessed letter appears in the hidden word
       int positions = 0;
+      int occurances = 0;
       int letterVal = 1; // the binary number with 1 in the spot corresponding to the current
                          // letter
-      for (int i = 0; i < currentWord.length (); i++) {
+      for (int i = 0; i < wordLength; i++) {
          if (currentWord.charAt (i) == guess) {
             positions |= letterVal;
+            occurances++;
          }
          letterVal <<= 1;
+      }
+
+      if (possibleWords == null) {
+         if (partitions.get (wordLength - 1).partitioned) {
+            possibleWords = partitions.get (wordLength - 1).sets.get (occurances);
+            possibleWords.restore ();
+
+         }
+         else {
+            possibleWords = partitions.get (wordLength - 1).sets.get (0);
+            partitionDiscardAndGetNextGuess (positions, occurances);
+            return;
+         }
       }
 
       // Update the possibleWords set to only include words that match the pattern of
@@ -93,8 +108,8 @@ public class HangmanPlayer {
    }
 
    // seperates the words by length into seperate files
-   public ArrayList<PartitionedWordSet> loadWordFileIntoPartitions (final String wordFile) {
-      final ArrayList<PartitionedWordSet> partitions = new ArrayList<> (24);
+   public ArrayList<WordSetPartitions> loadWordFileIntoPartitions (final String wordFile) {
+      final ArrayList<WordSetPartitions> partitions = new ArrayList<> (24);
       final ArrayList<CharacterMap> wordMapList = new ArrayList<> (24);
 
       try (BufferedReader setIn = new BufferedReader (new FileReader (wordFile))) {       
@@ -105,12 +120,12 @@ public class HangmanPlayer {
             word = word.toLowerCase ();
             // if a partition doesn't exist create a new one
             while (partitions.size () < word.length ()) {
-               partitions.add (new PartitionedWordSet ());
+               partitions.add (new WordSetPartitions ());
                wordMapList.add (new CharacterMap ());
             }
 
             // add word to the partition containing the words of the same length
-            partitions.get (word.length () - 1).append (word);
+            partitions.get (word.length () - 1).sets.get (0).append (word);
 
             // write the bit storing the characters that have been seen in the word
             int encounteredCharacters = 0;
@@ -190,5 +205,87 @@ public class HangmanPlayer {
          }
       }
       guess = (char) (mostCommon + 'a');
+   }
+
+
+   private void partitionDiscardAndGetNextGuess (final int positions, final int occurancesInHiddenWord) {
+      wordsWithCharacter.clear ();
+      final var partition = possibleWords.superSet ();
+
+      for (final var node : possibleWords) {
+         final String word = node.word;
+
+         int encounteredCharacters = 0;   // keeps track of what characters appear in this word
+         int mutPositions = positions; // copy I can mutate for this word
+         int guessOccurances = 0;
+         boolean discard = false;
+         for (int i = 0; i < word.length (); i++) {
+            final char c = word.charAt (i);
+
+            if (c == guess) {
+               guessOccurances++;
+            }
+
+            if (discard) {
+               continue;
+            }
+
+            // If one invalid character -> discard
+            if ((c == guess && (mutPositions & 1) == 0)
+                  || (c != guess && (mutPositions & 1) == 1)) {
+               // System.out.printf("%s does not match because it has a %s at %d%n", word,
+               // word.charAt(i), i);
+               discard = true;
+
+            }
+
+            encounteredCharacters |= 1 << (c - 'a');
+
+            mutPositions >>= 1;  // the requirement for the next position
+         }
+
+         if (guessOccurances > 0) {
+            while (partition.sets.size () <= guessOccurances) {
+               partition.sets.add (partition.new NondestructiveWordSet ());
+            }
+
+            // System.out.printf("relocating %s to %d%n", node.word, guessOccurances);
+            possibleWords.relocate (node, partition.sets.get (guessOccurances));
+         }
+
+         if (guessOccurances == occurancesInHiddenWord && discard) {
+            partition.sets.get (guessOccurances).discard (node);
+         }
+
+         if (!discard) {
+            // add characters that appear to the tally after sure we won't discard
+            // the 25th bit of encounteredChars is the most significant bit that will ever be
+            // set
+            // so i will never > 25
+            // System.out.println(Integer.toBinaryString(encounteredCharacters));
+            for (int i = 0; encounteredCharacters > 0; i++) {
+               if ((encounteredCharacters & 1) == 1) {
+                  wordsWithCharacter.increment (i);
+               }
+               encounteredCharacters >>>= 1; // get if next character appeared
+            }
+         }
+      }
+
+      // Pick next guess
+      int mostCommon = 0;
+      int frequency = 0;
+      for (int c = 0; c < 26; c++) {
+         final int wordCount = wordsWithCharacter.get (c);
+         if (wordCount > frequency && ((guessedLetters >> c) & 1) == 0) {
+            frequency = wordCount;
+            mostCommon = c;
+         }
+      }
+
+      guess = (char) (mostCommon + 'a');
+
+      possibleWords = partition.sets.get (occurancesInHiddenWord);
+      partition.partitioned = true;
    }
 }
