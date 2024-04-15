@@ -55,8 +55,6 @@ public class HangmanPlayer {
       possibleWords.restore();
 
       guess = possibleWords.bestFirstGuess;
-    } else {
-      guess = getNextGuess();
     }
 
     guessedLetters |= 1 << (guess - 'a');
@@ -93,7 +91,7 @@ public class HangmanPlayer {
     // Update the possibleWords set to only include words that match the pattern of
     // the
     // hidden word
-    discardNonMatchingWords(positions);
+    discardThenGuess(positions);
   }
 
   // seperates the words by length into seperate files
@@ -155,8 +153,10 @@ public class HangmanPlayer {
     return partitions;
   }
 
-  public void discardNonMatchingWords(final int positionsWithGuess) {
+  public void discardThenGuess(final int positionsWithGuess) {
+    wordsWithCharacter.clear();
     Processor: for (final var node : possibleWords) {
+      int encounteredLetters = 0;
       final String word = node.word;
       int positions = positionsWithGuess; // copy positions with guessed letter to mutate
       for (int i = 0; i < word.length(); i++) {
@@ -168,43 +168,18 @@ public class HangmanPlayer {
           possibleWords.discard(node);
           continue Processor;
         }
+        encounteredLetters |= 1 << (currentLetter - 'a');
         positions >>>= 1;
       }
-    }
-  }
-
-  public char getNextGuess() {
-    wordsWithCharacter.clear(); // reset tally since we reuse it
-
-    // Per word
-    for (final var node : possibleWords) {
-      int encounteredLetters = 0;
-
-      // mark the letters that appear in the word
-      for (int i = 0; i < node.word.length(); i++) {
-        final char currentLetter = node.word.charAt(i);
-        encounteredLetters |= 1 << (currentLetter - 'a');
-      }
-
-      // for each letter, if it appeared in the word increment it in
-      // wordsWithCharacter
-      // tally
-      for (int i = 0; encounteredLetters > 0; i++) {
-        // bbq burger
+      for (int j = 0; encounteredLetters > 0; j++) {
         if ((encounteredLetters & 1) == 1) {
-          // 21st century gang
-          wordsWithCharacter.increment(i);
+          wordsWithCharacter.increment(j);
         }
         encounteredLetters >>>= 1; // shift to next letter
       }
     }
-
-    // pick guess from character frequencies
     int mostCommon = -'a'; // we want null character if no letter can be picked
     int frequency = -1;
-    // Iterate through every letter in the tally and pick the one that hasn't been
-    // guessed
-    // and appears in the most words
     for (int currentLetter = 0; currentLetter < 26; currentLetter++) {
       final int wordCount = wordsWithCharacter.get(currentLetter);
       if (wordCount > frequency && ((guessedLetters >>> currentLetter) & 1) == 0) {
@@ -212,8 +187,6 @@ public class HangmanPlayer {
         mostCommon = currentLetter;
       }
     }
-
-    return (char) (mostCommon + 'a');
+    guess = (char) (mostCommon + 'a');
   }
-
 }
