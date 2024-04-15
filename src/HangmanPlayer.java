@@ -116,11 +116,11 @@ public class HangmanPlayer {
             int encounteredCharacters = 0;
             for (int i = 0; i < word.length (); i++) {
                final char currentLetter = word.charAt (i);
-               int val = 1 << (currentLetter - 'a');
-               encounteredCharacters |= val;
+               final int val = 1 << (currentLetter - 'a');
 
                if ((encounteredCharacters & val) == 0) {
-                  wordMapList.get (word.length () - 1).increment (i);
+                  encounteredCharacters |= val;
+                  wordMapList.get (word.length () - 1).increment (currentLetter - 'a');
                }
             }
          }
