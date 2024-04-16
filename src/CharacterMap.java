@@ -2,11 +2,47 @@
  * Author: Peter Stelzer; Joshua Cajuste
  */
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class CharacterMap {
+   static final Queue<CharacterMap> tallies = new LinkedList<>();
    private final int[] table = new int[26];
+
+   public static CharacterMap getTally () {
+      var next = tallies.poll();
+      if (next == null) {
+         next = new CharacterMap();
+      }
+      else {
+         next.clear();
+      }
+
+      return next;
+   }
+
+   public CharacterMap surrender() {
+      tallies.add(this);
+      return null;
+   }
+
+   public char getLargest (int excludedLetters) {
+      int mostCommon = -'a';
+      int frequency = -1;
+      for (int c = 0; c < 26; c++) {
+         final int wordCount = table[c];
+         if (wordCount > frequency && (excludedLetters & 1) == 0) {
+            frequency = wordCount;
+            mostCommon = c;
+         }
+
+         excludedLetters >>>= 1;
+      }
+
+      return (char) (mostCommon + 'a');
+   }
 
    public int get (final char character) {
       return table[character - 'a'];
@@ -50,9 +86,10 @@ public class CharacterMap {
    @Override
    public String toString () {
       final StringBuilder sb = new StringBuilder();
-      forEach ( (character, count) -> {
-         sb.append(String.format ("%s %d%n", character, count));
-      });
+      sb.append(String.format ("a = %d", table[0]));
+      for (int i = 1; i < 26; i++) {
+         sb.append(String.format ("%n%s = %d", (char)(i + 'a'), table[i]));
+      }
 
       return sb.toString();
    }
