@@ -1,5 +1,5 @@
 /*
- * Author: Peter Stelzer
+ * Author: Peter Stelzer; Joshua Cajuste
  */
 
 import java.util.function.BiConsumer;

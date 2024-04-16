@@ -1,3 +1,8 @@
+/*
+ * Authors: Gianni Bubb (NondestructiveWordSet); Peter Stelzer (WordSetPartitions wrapper)
+ */
+
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
