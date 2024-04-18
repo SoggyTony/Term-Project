@@ -8,11 +8,11 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class CharacterMap {
-   static final Queue<CharacterMap> tallies = new LinkedList<>();
+   static final Queue<CharacterMap> reusable = new LinkedList<>();
    private final int[] table = new int[26];
 
-   public static CharacterMap getTally () {
-      var next = tallies.poll();
+   public static CharacterMap checkOut () {
+      var next = reusable.poll();
       if (next == null) {
          next = new CharacterMap();
       }
@@ -24,7 +24,7 @@ public class CharacterMap {
    }
 
    public CharacterMap surrender() {
-      tallies.add(this);
+      reusable.add(this);
       return null;
    }
 

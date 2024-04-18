@@ -31,6 +31,8 @@ public class HangmanPlayer {
    char guess;
    int guesssedLetters;
 
+   private static final int BRANCH_MIN = 50;
+
    // initialize HangmanPlayer with a file of English words
    public HangmanPlayer (String wordFile) {
       partitions = loadWordFileIntoPartitions (wordFile);
@@ -51,6 +53,14 @@ public class HangmanPlayer {
          skip = currentWord.length () > 32;
 
          possibleWords = partitions.get (currentWord.length () - 1);
+
+         // If a length parition is smaller than the min, it will not be partitioned and the
+         // NdWordSet must be restored from the previous use
+         if (possibleWords.unprocessed != null
+               && possibleWords.unprocessed.size < BRANCH_MIN) {
+            possibleWords.unprocessed.restore ();
+         }
+
          guesssedLetters = 0;
          guess = possibleWords.bestGuess;
       }
@@ -94,15 +104,9 @@ public class HangmanPlayer {
       }
 
       if (!complete) {
-         // System.out.printf("hidden word has %s at %s%n", guess,
-         // Integer.toBinaryString(positions));
-         if (possibleWords.unprocessed != null && possibleWords.unprocessed.size < 50) {
-            if (possibleWords.unprocessed.occupancy < 1) {
-               // System.out.println(currentWord);
-               // throw new RuntimeException("No more words?");
-               possibleWords.unprocessed.restore ();
-            }
-            // System.out.println(possibleWords.unprocessed);
+         if (possibleWords.unprocessed != null
+               && possibleWords.unprocessed.size < BRANCH_MIN) {
+
             guess = discardThenGuess (positions);
          }
          else {
@@ -115,8 +119,7 @@ public class HangmanPlayer {
    }
 
    // seperates the words by length into seperate files
-   public ArrayList<Partition> loadWordFileIntoPartitions (
-         final String wordFile) {
+   public ArrayList<Partition> loadWordFileIntoPartitions (final String wordFile) {
       final ArrayList<Partition> partitions = new ArrayList<> (24);
 
       try (BufferedReader setIn = new BufferedReader (new FileReader (wordFile))) {
@@ -163,7 +166,7 @@ public class HangmanPlayer {
 
    public char discardThenGuess (final int positionsWithGuess) {
 
-      final CharacterMap wordsWithCharacter = CharacterMap.getTally ();
+      final CharacterMap wordsWithCharacter = CharacterMap.checkOut ();
 
       Processor: for (final var node : possibleWords.unprocessed) {
          final String word = node.word;
