@@ -67,7 +67,7 @@ public class HangmanPlayer {
 
          possibleWords = partitions.get (currentWord.length () - 1);
 
-         // If a length parition is smaller than the min, it will not be partitioned and the
+         // If a length partition is smaller than the min, it will not be partitioned and the
          // NdWordSet must be restored from the previous use
          if (possibleWords.unprocessed != null
                && possibleWords.unprocessed.size < BRANCH_MIN_SIZE) {
