@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class HangmanPlayer {
    final ArrayList<Partition> partitions;
@@ -31,11 +33,21 @@ public class HangmanPlayer {
    char guess;
    int guesssedLetters;
 
-   private static final int BRANCH_MIN = 50;
+   /**
+    * The minimum number of words a partition must contain for it to be prepartitioned further
+    */
+   private static final int PREPROCESS_MIN_SIZE = 100;
+
+   /**
+    * The minimum number of words a partition must contain for it to be partitioned at all,
+    * else it will use NondestructiveWordSet
+    */
+   private static final int BRANCH_MIN_SIZE = 100;
 
    // initialize HangmanPlayer with a file of English words
    public HangmanPlayer (String wordFile) {
       partitions = loadWordFileIntoPartitions (wordFile);
+      preprocess (PREPROCESS_MIN_SIZE);
    }
 
    // based on the current (partial or intitially blank) word
@@ -57,7 +69,7 @@ public class HangmanPlayer {
          // If a length parition is smaller than the min, it will not be partitioned and the
          // NdWordSet must be restored from the previous use
          if (possibleWords.unprocessed != null
-               && possibleWords.unprocessed.size < BRANCH_MIN) {
+               && possibleWords.unprocessed.size < BRANCH_MIN_SIZE) {
             possibleWords.unprocessed.restore ();
          }
 
@@ -105,7 +117,7 @@ public class HangmanPlayer {
 
       if (!complete) {
          if (possibleWords.unprocessed != null
-               && possibleWords.unprocessed.size < BRANCH_MIN) {
+               && possibleWords.unprocessed.size < BRANCH_MIN_SIZE) {
 
             guess = discardThenGuess (positions);
          }
@@ -115,10 +127,14 @@ public class HangmanPlayer {
          }
       }
 
-
    }
 
-   // seperates the words by length into seperate files
+   /**
+    * Reads in the wordFile and loads the contents into sets separated by wordLength
+    * 
+    * @param wordFile
+    * @return An array of the sets containing all words separated by length
+    */
    public ArrayList<Partition> loadWordFileIntoPartitions (final String wordFile) {
       final ArrayList<Partition> partitions = new ArrayList<> (24);
 
@@ -164,6 +180,45 @@ public class HangmanPlayer {
       return partitions;
    }
 
+   /**
+    * Force split all partitions with more or equal elements than minSize
+    *
+    * @param minSize the smallest partition size which should be split
+    */
+   public void preprocess (final int minSize) {
+
+      // Do not branch partitions smaller than the min branch size
+      final int actualSkipSize = Math.max (minSize, BRANCH_MIN_SIZE);
+      final Queue<Partition> toPartition = new LinkedList<> ();
+
+      // Add word length partitions to queue if large enough
+      for (int i = 0; i < partitions.size (); i++) {
+         if (partitions.get (i).unprocessed.size >= actualSkipSize) {
+            toPartition.add (partitions.get (i));
+         }
+      }
+
+      // Process everything in queue and add large enough subpartitions into the queue
+      while (!toPartition.isEmpty ()) {
+         final Partition part = toPartition.poll ();
+         part.get (0);  // process
+
+         part.partitions.forEach ( (pos, parts) -> {
+            if (parts.unprocessed.size >= actualSkipSize) {
+               toPartition.add (parts);
+            }
+         });
+      }
+   }
+
+   /**
+    * Analyzes a Nondestructive word set, discarding all words which do not match the given
+    * pattern and counting the letters that appear once in each word to determine the next
+    * guess
+    * 
+    * @param positionsWithGuess int with bits encoding last guess positions in the hidden word
+    * @return the next guess character
+    */
    public char discardThenGuess (final int positionsWithGuess) {
 
       final CharacterMap wordsWithCharacter = CharacterMap.checkOut ();
