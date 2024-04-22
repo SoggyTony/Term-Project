@@ -2,10 +2,10 @@
  * Author: Peter Stelzer
  */
 
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.HashMap;
 
 public class Partition {
-   ConcurrentSkipListMap<Integer, Partition> partitions;
+   HashMap<Integer, Partition> partitions;
    WordSet unprocessed;
    char bestGuess;
    int guessedLetters;
@@ -31,7 +31,7 @@ public class Partition {
 
       if (partitions == null) {  // partition into positions of bestGuess
          
-         partitions = new ConcurrentSkipListMap<> ();
+         partitions = new HashMap<> ();
          for (final var node : unprocessed) {
             final String word = node.word;
 
