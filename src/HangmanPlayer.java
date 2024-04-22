@@ -7,7 +7,8 @@
  * Section: S23
  * Description of the overall algorithm:
  * Init: Create partitioned sets for each word length, which contain all the words of that
- * length and the best guess for those words.
+ * length and the best guess for those words. Preprocess the larger sets to speed up early
+ * guessing
  * 
  * guess(): If hiddenWord is a newWord, get the set of words of hiddenWord length into the
  * possible word set. Get the guess associated with the set. Mark that the letter was guessed.
