@@ -116,11 +116,13 @@ public class HangmanPlayer {
       }
 
       if (!complete) {
+         // If possibleWords is smaller than min_branch, use NdWordSet logic
          if (possibleWords.unprocessed != null
                && possibleWords.unprocessed.size < BRANCH_MIN_SIZE) {
 
             guess = discardThenGuess (positions);
          }
+         // If possibleWords is large enough to be split, get next partition
          else {
             possibleWords = possibleWords.get (positions);
             guess = possibleWords.bestGuess;
